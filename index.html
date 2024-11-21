@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Telegram Game</title>
+</head>
+<body>
+    <h1>Chào mừng bạn đến với game HTML5!</h1>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.MainButton.text = "Bắt đầu!";
+        tg.MainButton.show();
+    </script>
+</body>
+</html>

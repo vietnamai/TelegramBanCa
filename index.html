@@ -1,29 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Bắn Cá</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        #gameCanvas {
+            background-color: #87CEEB;
+            margin-top: 20px;
+            border: 2px solid #000;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 20px;
+            cursor: pointer;
+        }
+        #log {
+            margin-top: 20px;
+            color: #ff6347;
+        }
+    </style>
 </head>
 <body>
-    <h1>Chào mừng bạn đến với game Bắn Cá!</h1>
-    <p>Hãy nhấn nút bên dưới để bắt đầu chơi!</p>
-    
-    <p id="log">Log sẽ hiển thị ở đây...</p> <!-- Để hiển thị log trên giao diện web -->
+    <h1>Chào mừng bạn đến với Game Bắn Cá!</h1>
+    <button class="button" id="startButton">Bắt đầu chơi</button>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <p id="log">Log sẽ hiển thị ở đây...</p>
 
     <script>
-        // Cập nhật log hiển thị trên giao diện
-        function logMessage(message) {
-            const logElement = document.getElementById("log");
-            logElement.innerText += `\n${message}`;
-        }
-
         // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAvDVutKWBXKp2BASP4K29FCM2740glOr8",
             authDomain: "banca-e6b96.firebaseapp.com",
+            databaseURL: "https://banca-e6b96-default-rtdb.firebaseio.com",
             projectId: "banca-e6b96",
             storageBucket: "banca-e6b96.firebasestorage.app",
             messagingSenderId: "89645724545",
@@ -33,42 +51,137 @@
 
         // Khởi tạo Firebase
         firebase.initializeApp(firebaseConfig);
-        logMessage("Firebase đã khởi tạo thành công!");
-
-        // Firebase Auth (tùy chọn, nếu cần đăng nhập)
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
+        const database = firebase.database();
+        
         // Tích hợp Telegram Web App
         const tg = window.Telegram.WebApp;
         tg.expand();
-
-        // Thêm nút "Bắt đầu"
         tg.MainButton.text = "Bắt đầu!";
         tg.MainButton.show();
 
+        // Chức năng join hoặc tạo phòng
         tg.MainButton.onClick(() => {
-            tg.sendData("start_game"); // Gửi tín hiệu khi người dùng nhấn nút
-            logMessage("Trò chơi bắt đầu! Bạn có thể tiếp tục code logic ở đây.");
-            alert("Trò chơi bắt đầu! Bạn có thể tiếp tục code logic ở đây.");
+            const userId = tg.initDataUnsafe.user.id;
+            joinOrCreateRoom(userId);
         });
 
-        // Ví dụ sử dụng Firestore
-        async function logPlayerActivity(playerId, action) {
-            try {
-                await db.collection("playerLogs").add({
-                    playerId: playerId,
-                    action: action,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        function logMessage(message) {
+            const logElement = document.getElementById("log");
+            logElement.innerText += `\n${message}`;
+        }
+
+        // Quản lý phòng và người chơi
+        function joinOrCreateRoom(userId) {
+            const roomsRef = database.ref("rooms");
+            roomsRef.once('value').then(snapshot => {
+                let roomJoined = false;
+                snapshot.forEach(room => {
+                    if (room.numPlayers < 4) {
+                        // Thêm người chơi vào phòng
+                        room.ref.child("players").push({
+                            userId: userId,
+                            tokens: 10 // Mỗi người chơi bắt đầu với 10 token
+                        });
+                        logMessage(`Đã tham gia phòng: ${room.key}`);
+                        roomJoined = true;
+                        return true; // Thoát khỏi vòng lặp khi đã tham gia phòng
+                    }
                 });
-                logMessage(`Đã ghi lại hoạt động của người chơi: ${playerId}, hành động: ${action}`);
-            } catch (error) {
-                logMessage(`Lỗi khi ghi log: ${error.message}`);
+
+                if (!roomJoined) {
+                    // Nếu không có phòng trống, tạo phòng mới
+                    const newRoomRef = roomsRef.push();
+                    newRoomRef.set({
+                        numPlayers: 1, // Phòng mới bắt đầu có 1 người chơi
+                        players: {
+                            [userId]: {
+                                tokens: 10, // Mỗi người chơi bắt đầu với 10 token
+                            }
+                        }
+                    });
+                    logMessage(`Đã tạo phòng mới cho người chơi: ${userId}`);
+                }
+            });
+        }
+
+        // Setup Canvas và game logic
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Cấu hình cá
+        const fishTypes = [
+            { name: "Cá nhỏ", tokenReward: 5, width: 50, height: 30 },
+            { name: "Cá trung", tokenReward: 10, width: 80, height: 50 },
+            { name: "Cá lớn", tokenReward: 20, width: 100, height: 70 },
+        ];
+
+        const fishList = [];
+
+        // Tạo cá ngẫu nhiên
+        function spawnFish() {
+            for (let i = 0; i < 5; i++) {
+                const fish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
+                const fishObj = {
+                    type: fish,
+                    x: Math.random() * (canvas.width - fish.width),
+                    y: Math.random() * (canvas.height - fish.height),
+                    speedX: (Math.random() - 0.5) * 2,
+                    speedY: (Math.random() - 0.5) * 2
+                };
+                fishList.push(fishObj);
             }
         }
 
-        // Ghi log ví dụ
-        logPlayerActivity("player1", "joined_game");
+        // Di chuyển cá
+        function moveFish() {
+            fishList.forEach(fish => {
+                fish.x += fish.speedX;
+                fish.y += fish.speedY;
+
+                if (fish.x < 0 || fish.x + fish.width > canvas.width) fish.speedX *= -1;
+                if (fish.y < 0 || fish.y + fish.height > canvas.height) fish.speedY *= -1;
+            });
+        }
+
+        // Vẽ cá
+        function drawFish() {
+            fishList.forEach(fish => {
+                ctx.fillStyle = "#FF6347"; // Màu cá
+                ctx.fillRect(fish.x, fish.y, fish.width, fish.height);
+            });
+        }
+
+        // Logic bắn đạn
+        const bullets = [];
+        function shootBullet(playerX, playerY) {
+            const bullet = {
+                x: playerX,
+                y: playerY,
+                speed: 5
+            };
+            bullets.push(bullet);
+        }
+
+        // Vẽ đạn
+        function drawBullets() {
+            bullets.forEach(bullet => {
+                ctx.fillStyle = "#000000";
+                ctx.fillRect(bullet.x, bullet.y, 10, 10);
+            });
+        }
+
+        // Cập nhật game
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Dọn dẹp canvas
+            moveFish();
+            drawFish();
+            drawBullets();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Khởi tạo game
+        spawnFish();
+        gameLoop();
     </script>
 </body>
 </html>

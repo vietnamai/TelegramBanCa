@@ -1,16 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Telegram Game</title>
+    <title>Game Bắn Cá</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
 </head>
 <body>
-    <h1>Chào mừng bạn đến với game HTML5!</h1>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <h1>Chào mừng bạn đến với game Bắn Cá!</h1>
+    <p>Hãy nhấn nút bên dưới để bắt đầu chơi!</p>
+    
+    <p id="log">Log sẽ hiển thị ở đây...</p> <!-- Để hiển thị log trên giao diện web -->
+
     <script>
+        // Cập nhật log hiển thị trên giao diện
+        function logMessage(message) {
+            const logElement = document.getElementById("log");
+            logElement.innerText += `\n${message}`;
+        }
+
+        // Cấu hình Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvDVutKWBXKp2BASP4K29FCM2740glOr8",
+            authDomain: "banca-e6b96.firebaseapp.com",
+            projectId: "banca-e6b96",
+            storageBucket: "banca-e6b96.firebasestorage.app",
+            messagingSenderId: "89645724545",
+            appId: "1:89645724545:web:69e1a869090ace96bcee80",
+            measurementId: "G-PSGLFVGJQX"
+        };
+
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        logMessage("Firebase đã khởi tạo thành công!");
+
+        // Firebase Auth (tùy chọn, nếu cần đăng nhập)
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Tích hợp Telegram Web App
         const tg = window.Telegram.WebApp;
         tg.expand();
+
+        // Thêm nút "Bắt đầu"
         tg.MainButton.text = "Bắt đầu!";
         tg.MainButton.show();
+
+        tg.MainButton.onClick(() => {
+            tg.sendData("start_game"); // Gửi tín hiệu khi người dùng nhấn nút
+            logMessage("Trò chơi bắt đầu! Bạn có thể tiếp tục code logic ở đây.");
+            alert("Trò chơi bắt đầu! Bạn có thể tiếp tục code logic ở đây.");
+        });
+
+        // Ví dụ sử dụng Firestore
+        async function logPlayerActivity(playerId, action) {
+            try {
+                await db.collection("playerLogs").add({
+                    playerId: playerId,
+                    action: action,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                logMessage(`Đã ghi lại hoạt động của người chơi: ${playerId}, hành động: ${action}`);
+            } catch (error) {
+                logMessage(`Lỗi khi ghi log: ${error.message}`);
+            }
+        }
+
+        // Ghi log ví dụ
+        logPlayerActivity("player1", "joined_game");
     </script>
 </body>
 </html>

@@ -35,8 +35,11 @@
     <div id="error"></div>
 
     <script>
-        document.getElementById('start-game').addEventListener('click', () => {
-            try {
+        // Kiểm tra nếu Telegram Web App SDK tồn tại
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready(); // Gọi ready() để SDK hoạt động
+
+            document.getElementById('start-game').addEventListener('click', () => {
                 const user = window.Telegram.WebApp.initDataUnsafe.user;
 
                 if (user) {
@@ -49,12 +52,12 @@
                         <p>${name}</p>
                     `;
                 } else {
-                    throw new Error("Không lấy được thông tin người dùng từ Telegram Web App.");
+                    document.getElementById('error').innerText = "Không lấy được thông tin người dùng.";
                 }
-            } catch (error) {
-                document.getElementById('error').innerText = error.message;
-            }
-        });
+            });
+        } else {
+            document.getElementById('error').innerText = "Không phát hiện Telegram Web App. Hãy mở ứng dụng qua Telegram.";
+        }
     </script>
 </body>
 </html>

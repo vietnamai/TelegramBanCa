@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Bắn Cá</title>
+    <title>Game Bắn Cá 2</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -50,9 +50,24 @@
         .button:hover {
             background-color: #006b8e;
         }
+        /* Phần tử thông báo lỗi */
+        #error-message {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: red;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Thông báo lỗi -->
+    <div id="error-message">Đã có lỗi xảy ra. Kiểm tra lại!</div>
 
     <div id="user-info">
         <img id="userAvatar" src="" alt="User Avatar">
@@ -66,27 +81,6 @@
     <script>
         let user;
         let gameRunning = false;
-
-        window.onload = function() {
-            Telegram.WebApp.ready();
-
-            // Lấy thông tin người dùng
-            user = Telegram.WebApp.initDataUnsafe.user;
-
-            // Hiển thị avatar và tên người dùng
-            document.getElementById("userAvatar").src = user.photo_url || 'https://www.example.com/default-avatar.png';
-            document.getElementById("userName").textContent = user.first_name || "Người dùng";
-
-            // Cập nhật giao diện Telegram Web App
-            Telegram.WebApp.expand();
-        }
-
-        // Hàm bắt đầu game
-        function startGame() {
-            gameRunning = true;
-            document.querySelector(".button").style.display = 'none'; // Ẩn nút bắt đầu khi game bắt đầu
-            gameLoop(); // Bắt đầu vòng lặp game
-        }
 
         // Thiết lập canvas cho game
         const canvas = document.getElementById('gameCanvas');
@@ -103,6 +97,32 @@
             dx: 2,
             dy: 2
         };
+
+        window.onload = function() {
+            try {
+                Telegram.WebApp.ready();
+
+                // Lấy thông tin người dùng
+                user = Telegram.WebApp.initDataUnsafe.user;
+
+                // Hiển thị avatar và tên người dùng
+                document.getElementById("userAvatar").src = user.photo_url || 'https://www.example.com/default-avatar.png';
+                document.getElementById("userName").textContent = user.first_name || "Người dùng";
+
+                // Cập nhật giao diện Telegram Web App
+                Telegram.WebApp.expand();
+            } catch (error) {
+                // Hiển thị thông báo lỗi nếu có lỗi
+                showError("Không thể lấy thông tin người dùng.");
+            }
+        }
+
+        // Hàm bắt đầu game
+        function startGame() {
+            gameRunning = true;
+            document.querySelector(".button").style.display = 'none'; // Ẩn nút bắt đầu khi game bắt đầu
+            gameLoop(); // Bắt đầu vòng lặp game
+        }
 
         // Vẽ cá trên canvas
         function drawFish() {
@@ -134,6 +154,18 @@
             drawFish(); // Vẽ lại cá
 
             requestAnimationFrame(gameLoop); // Tiếp tục vòng lặp game
+        }
+
+        // Hàm hiển thị thông báo lỗi
+        function showError(message) {
+            const errorMessageDiv = document.getElementById("error-message");
+            errorMessageDiv.textContent = message;
+            errorMessageDiv.style.display = 'block';
+
+            // Ẩn thông báo sau 5 giây
+            setTimeout(() => {
+                errorMessageDiv.style.display = 'none';
+            }, 5000);
         }
     </script>
 </body>

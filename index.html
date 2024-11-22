@@ -41,7 +41,7 @@
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div class="game-info" id="gameInfo">
-        <p id="playerName">Đang tải thông tin người dùng</p>
+        <p id="playerName">Đang tải thông tin người dùng...</p>
         <p id="playerAvatar"></p>
     </div>
 
@@ -101,7 +101,12 @@
             document.getElementById('debugInfo').textContent = `User Data: ${JSON.stringify(Telegram.WebApp.initDataUnsafe)}`;
         }
 
-        // Check if user data is available, if not, call the function again after a delay
+        // Using Web App's onEvent to wait for data
+        Telegram.WebApp.onEvent('user', function() {
+            loadUserData();  // Load user data once available
+        });
+
+        // Fallback check if data is available immediately
         if (Telegram.WebApp.initDataUnsafe?.user) {
             loadUserData();
         } else {

@@ -39,7 +39,6 @@
             font-size: 18px;
             color: white;
         }
-        /* Phần tử nút bắt đầu chơi */
         .button {
             position: absolute;
             top: 50%;
@@ -55,7 +54,6 @@
         .button:hover {
             background-color: #006b8e;
         }
-        /* Phần tử thông báo lỗi */
         #error-message {
             position: fixed;
             top: 10px;
@@ -87,16 +85,16 @@
         let user;
         let gameRunning = false;
 
-        // Thiết lập canvas cho game
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // Mảng cá
+        // Mảng cá và đạn
         let fishes = [];
-        
-        // Hàm tạo con cá
+        let bullets = [];
+
+        // Tạo con cá
         function createFish() {
             let fish = {
                 x: Math.random() * canvas.width,
@@ -114,6 +112,95 @@
             createFish();
         }
 
+        // Tạo đạn
+        function createBullet(x, y) {
+            let bullet = {
+                x: x,
+                y: y,
+                size: 5,
+                speed: 5,
+                dx: 0,
+                dy: -5 // Đạn sẽ đi lên
+            };
+            bullets.push(bullet);
+        }
+
+        // Xử lý phím bấm để bắn đạn
+        window.addEventListener('keydown', function(event) {
+            if (event.key === ' ') { // Bắn khi nhấn phím cách (Space)
+                createBullet(canvas.width / 2, canvas.height - 50); // Đạn bắt đầu từ vị trí người chơi
+            }
+        });
+
+        // Vẽ cá
+        function drawFishes() {
+            fishes.forEach(fish => {
+                ctx.beginPath();
+                ctx.arc(fish.x, fish.y, fish.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'yellow';
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
+
+        // Vẽ đạn
+        function drawBullets() {
+            bullets.forEach(bullet => {
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, bullet.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
+
+        // Cập nhật vị trí cá và đạn
+        function updateFishesAndBullets() {
+            // Cập nhật vị trí cá
+            fishes.forEach(fish => {
+                if (fish.x + fish.size > canvas.width || fish.x - fish.size < 0) {
+                    fish.dx = -fish.dx;
+                }
+                if (fish.y + fish.size > canvas.height || fish.y - fish.size < 0) {
+                    fish.dy = -fish.dy;
+                }
+                fish.x += fish.dx;
+                fish.y += fish.dy;
+            });
+
+            // Cập nhật vị trí đạn
+            bullets.forEach((bullet, index) => {
+                bullet.y += bullet.dy; // Đạn di chuyển lên
+
+                // Nếu đạn ra khỏi màn hình, xóa nó
+                if (bullet.y < 0) {
+                    bullets.splice(index, 1);
+                }
+
+                // Kiểm tra va chạm với cá
+                fishes.forEach((fish, fishIndex) => {
+                    const dist = Math.sqrt(Math.pow(bullet.x - fish.x, 2) + Math.pow(bullet.y - fish.y, 2));
+                    if (dist < fish.size) { // Kiểm tra va chạm
+                        // Xóa cá và đạn
+                        fishes.splice(fishIndex, 1);
+                        bullets.splice(index, 1);
+                    }
+                });
+            });
+        }
+
+        // Vòng lặp game
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Xóa canvas
+            updateFishesAndBullets(); // Cập nhật cá và đạn
+            drawFishes(); // Vẽ cá
+            drawBullets(); // Vẽ đạn
+
+            requestAnimationFrame(gameLoop); // Tiếp tục vòng lặp game
+        }
+
         window.onload = function() {
             try {
                 Telegram.WebApp.ready();
@@ -128,52 +215,14 @@
                 // Cập nhật giao diện Telegram Web App
                 Telegram.WebApp.expand();
             } catch (error) {
-                // Hiển thị thông báo lỗi nếu có lỗi
                 showError("Không thể lấy thông tin người dùng.");
             }
-        }
+        };
 
-        // Hàm bắt đầu game
         function startGame() {
             gameRunning = true;
             document.querySelector(".button").style.display = 'none'; // Ẩn nút bắt đầu khi game bắt đầu
             gameLoop(); // Bắt đầu vòng lặp game
-        }
-
-        // Vẽ tất cả các con cá
-        function drawFishes() {
-            fishes.forEach(fish => {
-                ctx.beginPath();
-                ctx.arc(fish.x, fish.y, fish.size, 0, Math.PI * 2);
-                ctx.fillStyle = 'yellow';
-                ctx.fill();
-                ctx.closePath();
-            });
-        }
-
-        // Cập nhật vị trí tất cả các con cá
-        function updateFishes() {
-            fishes.forEach(fish => {
-                if (fish.x + fish.size > canvas.width || fish.x - fish.size < 0) {
-                    fish.dx = -fish.dx;
-                }
-                if (fish.y + fish.size > canvas.height || fish.y - fish.size < 0) {
-                    fish.dy = -fish.dy;
-                }
-                fish.x += fish.dx;
-                fish.y += fish.dy;
-            });
-        }
-
-        // Vòng lặp game
-        function gameLoop() {
-            if (!gameRunning) return;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Xóa canvas
-            updateFishes(); // Cập nhật vị trí các con cá
-            drawFishes(); // Vẽ lại tất cả các con cá
-
-            requestAnimationFrame(gameLoop); // Tiếp tục vòng lặp game
         }
 
         // Hàm hiển thị thông báo lỗi
@@ -182,7 +231,6 @@
             errorMessageDiv.textContent = message;
             errorMessageDiv.style.display = 'block';
 
-            // Ẩn thông báo sau 5 giây
             setTimeout(() => {
                 errorMessageDiv.style.display = 'none';
             }, 5000);

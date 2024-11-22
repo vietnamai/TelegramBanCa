@@ -8,33 +8,42 @@
 <body>
     <h1>Thông tin người dùng</h1>
     <div id="userInfo">Đang tải thông tin...</div>
+    <div id="errorInfo" style="color: red;"></div> <!-- Vùng hiển thị lỗi -->
 
     <script>
-        // Khởi tạo Telegram Web App
-        const tg = window.Telegram.WebApp;
+        try {
+            // Khởi tạo Telegram Web App
+            const tg = window.Telegram.WebApp;
 
-        // Đảm bảo Web App đã sẵn sàng
-        tg.ready();
+            // Đảm bảo Web App đã sẵn sàng
+            tg.ready();
 
-        // Lấy thông tin người dùng từ initDataUnsafe
-        const user = tg.initDataUnsafe?.user;
+            // Lấy thông tin người dùng từ initDataUnsafe
+            const user = tg.initDataUnsafe?.user;
 
-        if (user) {
-            // Hiển thị thông tin người dùng
-            const userInfoDiv = document.getElementById('userInfo');
-            userInfoDiv.innerHTML = `
-                <p>Họ tên: ${user.first_name} ${user.last_name || ''}</p>
-                <p>Username: ${user.username || 'Không có'}</p>
-                <p>ID: ${user.id}</p>
-                <img src="${user.photo_url}" alt="Avatar" width="100">
-            `;
-        } else {
-            document.getElementById('userInfo').textContent = 'Không thể lấy thông tin người dùng.';
+            if (user) {
+                // Hiển thị thông tin người dùng
+                const userInfoDiv = document.getElementById('userInfo');
+                userInfoDiv.innerHTML = `
+                    <p>Họ tên: ${user.first_name} ${user.last_name || ''}</p>
+                    <p>Username: ${user.username || 'Không có'}</p>
+                    <p>ID: ${user.id}</p>
+                    <img src="${user.photo_url}" alt="Avatar" width="100">
+                `;
+            } else {
+                document.getElementById('userInfo').textContent = 'Không thể lấy thông tin người dùng.';
+            }
+
+            // In debug dữ liệu vào console (chỉ dùng để kiểm tra)
+            console.log('Dữ liệu thô:', tg.initData);
+            console.log('Dữ liệu phân tích:', tg.initDataUnsafe);
+        } catch (error) {
+            // Xử lý lỗi nếu xảy ra
+            console.error('Đã xảy ra lỗi:', error);
+
+            // Hiển thị lỗi lên giao diện
+            document.getElementById('errorInfo').textContent = `Đã xảy ra lỗi: ${error.message}`;
         }
-
-        // In debug dữ liệu vào console (chỉ dùng để kiểm tra)
-        console.log('Dữ liệu thô:', tg.initData);
-        console.log('Dữ liệu phân tích:', tg.initDataUnsafe);
     </script>
 </body>
 </html>

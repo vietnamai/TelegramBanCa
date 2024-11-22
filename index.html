@@ -26,6 +26,16 @@
             font-size: 16px;
             text-align: center;
         }
+        #debugInfo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: black;
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -34,6 +44,9 @@
         <p id="playerName">Đang tải thông tin người dùng...</p>
         <p id="playerAvatar"></p>
     </div>
+
+    <!-- Debug Info Box -->
+    <div id="debugInfo">Đang tải dữ liệu...</div>
 
     <script>
         // Game logic placeholder
@@ -66,13 +79,14 @@
         // Telegram Web App Info (player's name and avatar)
         window.Telegram.WebApp.ready();  // Ensure WebApp is ready
 
-        // Listen to the event when user data is available
-        Telegram.WebApp.onEvent('user', function () {
+        // Function to load user data
+        function loadUserData() {
             const playerName = Telegram.WebApp.initDataUnsafe?.user?.first_name || "Player";
             const playerAvatar = Telegram.WebApp.initDataUnsafe?.user?.photo_url || "";
 
-            // Update player info
+            // Update player info on the page
             document.getElementById('playerName').textContent = `Chào ${playerName}!`;
+
             if (playerAvatar) {
                 const img = document.createElement('img');
                 img.src = playerAvatar;
@@ -82,7 +96,19 @@
             } else {
                 document.getElementById('playerAvatar').textContent = "Ảnh đại diện không có";
             }
-        });
+
+            // Display debug information on screen
+            document.getElementById('debugInfo').textContent = `User Data: ${JSON.stringify(Telegram.WebApp.initDataUnsafe)}`;
+        }
+
+        // Check if user data is available, if not, call the function again after a delay
+        if (Telegram.WebApp.initDataUnsafe?.user) {
+            loadUserData();
+        } else {
+            setTimeout(() => {
+                loadUserData();  // Retry after a short delay
+            }, 2000);
+        }
     </script>
 </body>
 </html>

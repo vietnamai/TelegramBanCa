@@ -54,30 +54,39 @@
         .button:hover {
             background-color: #006b8e;
         }
-        #score {
+        #score, #timer {
             position: absolute;
             top: 10px;
-            left: 10px;
             font-size: 24px;
             color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+        #score {
+            left: 10px;
+        }
+        #timer {
+            right: 10px;
         }
     </style>
 </head>
 <body>
     <div id="user-info">
-        <img id="userAvatar" src="" alt="User Avatar">
+        <img id="userAvatar" src="https://via.placeholder.com/40" alt="User Avatar">
         <span id="userName">Loading...</span>
     </div>
 
     <div id="score">Score: 0</div>
+    <div id="timer">Time: 60</div>
     <canvas id="gameCanvas"></canvas>
-    <button class="button" onclick="startGame()">Bắt đầu chơi 1</button>
+    <button class="button" onclick="startGame()">Bắt đầu chơi</button>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         let user;
         let gameRunning = false;
         let score = 0;
+        let timeLeft = 60; // 60 giây chơi
+        let timerInterval;
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -86,7 +95,10 @@
 
         let fishes = [];
         let bullets = [];
-        const gun = { x: canvas.width - 60, y: canvas.height - 60, size: 50 };
+        const gun = { x: canvas.width / 2, y: canvas.height - 60, size: 50 };
+
+        const shootSound = new Audio('https://www.soundjay.com/button/beep-07.wav');
+        const hitSound = new Audio('https://www.soundjay.com/button/beep-05.wav');
 
         function createFish() {
             const fishTypes = [
@@ -116,18 +128,43 @@
             try {
                 Telegram.WebApp.ready();
                 user = Telegram.WebApp.initDataUnsafe.user;
-                document.getElementById("userAvatar").src = user.photo_url || 'https://www.example.com/default-avatar.png';
+
+                document.getElementById("userAvatar").src = user.photo_url || 'https://via.placeholder.com/40';
                 document.getElementById("userName").textContent = user.first_name || "Người dùng";
                 Telegram.WebApp.expand();
             } catch (error) {
                 alert("Không thể lấy thông tin người dùng.");
             }
+
+            // Tự động thay đổi kích thước canvas khi resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
         };
 
         function startGame() {
             gameRunning = true;
             document.querySelector(".button").style.display = 'none';
+            startTimer();
             gameLoop();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Time: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameRunning = false;
+            clearInterval(timerInterval);
+            alert(`Trò chơi kết thúc! Điểm số của bạn: ${score}`);
+            document.querySelector(".button").style.display = 'block';
         }
 
         function drawGun() {
@@ -140,6 +177,7 @@
 
         function shootBullet(x, y) {
             bullets.push({ x: gun.x, y: gun.y, dx: (x - gun.x) / 20, dy: (y - gun.y) / 20 });
+            shootSound.play();
         }
 
         canvas.addEventListener('click', (e) => {
@@ -173,6 +211,7 @@
                         document.getElementById('score').textContent = `Score: ${score}`;
                         bullets.splice(bIndex, 1);
                         fishes.splice(fIndex, 1);
+                        hitSound.play();
                         createFish();
                     }
                 });

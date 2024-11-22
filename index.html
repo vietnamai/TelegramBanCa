@@ -14,6 +14,7 @@
             height: 100vh;
             margin: 0;
             background-color: #00BFFF;
+            position: relative;
         }
         #gameCanvas {
             width: 100%;
@@ -38,14 +39,18 @@
             font-size: 18px;
             color: white;
         }
+        /* Phần tử nút bắt đầu chơi */
         .button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background-color: #0088cc;
             color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 20px;
         }
         .button:hover {
             background-color: #006b8e;
@@ -88,15 +93,26 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        // Đối tượng cá
-        let fish = {
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-            size: 50,
-            speed: 5,
-            dx: 2,
-            dy: 2
-        };
+        // Mảng cá
+        let fishes = [];
+        
+        // Hàm tạo con cá
+        function createFish() {
+            let fish = {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: 50,
+                speed: 2 + Math.random() * 3,
+                dx: 2 + Math.random() * 2,
+                dy: 2 + Math.random() * 2
+            };
+            fishes.push(fish);
+        }
+
+        // Tạo ra 5 con cá ban đầu
+        for (let i = 0; i < 5; i++) {
+            createFish();
+        }
 
         window.onload = function() {
             try {
@@ -124,25 +140,29 @@
             gameLoop(); // Bắt đầu vòng lặp game
         }
 
-        // Vẽ cá trên canvas
-        function drawFish() {
-            ctx.beginPath();
-            ctx.arc(fish.x, fish.y, fish.size, 0, Math.PI * 2);
-            ctx.fillStyle = 'yellow';
-            ctx.fill();
-            ctx.closePath();
+        // Vẽ tất cả các con cá
+        function drawFishes() {
+            fishes.forEach(fish => {
+                ctx.beginPath();
+                ctx.arc(fish.x, fish.y, fish.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'yellow';
+                ctx.fill();
+                ctx.closePath();
+            });
         }
 
-        // Cập nhật vị trí cá
-        function updateFish() {
-            if (fish.x + fish.size > canvas.width || fish.x - fish.size < 0) {
-                fish.dx = -fish.dx;
-            }
-            if (fish.y + fish.size > canvas.height || fish.y - fish.size < 0) {
-                fish.dy = -fish.dy;
-            }
-            fish.x += fish.dx;
-            fish.y += fish.dy;
+        // Cập nhật vị trí tất cả các con cá
+        function updateFishes() {
+            fishes.forEach(fish => {
+                if (fish.x + fish.size > canvas.width || fish.x - fish.size < 0) {
+                    fish.dx = -fish.dx;
+                }
+                if (fish.y + fish.size > canvas.height || fish.y - fish.size < 0) {
+                    fish.dy = -fish.dy;
+                }
+                fish.x += fish.dx;
+                fish.y += fish.dy;
+            });
         }
 
         // Vòng lặp game
@@ -150,8 +170,8 @@
             if (!gameRunning) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Xóa canvas
-            updateFish(); // Cập nhật vị trí cá
-            drawFish(); // Vẽ lại cá
+            updateFishes(); // Cập nhật vị trí các con cá
+            drawFishes(); // Vẽ lại tất cả các con cá
 
             requestAnimationFrame(gameLoop); // Tiếp tục vòng lặp game
         }
@@ -168,6 +188,5 @@
             }, 5000);
         }
     </script>
-    <h2>Bắn Cá Ăn Token</h2>
 </body>
 </html>

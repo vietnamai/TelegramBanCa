@@ -77,7 +77,7 @@
     </div>
 
     <canvas id="gameCanvas"></canvas>
-    <button class="button" onclick="startGame()">Bắt đầu chơi 1</button>
+    <button class="button" onclick="startGame()">Bắt đầu chơi 3</button>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
@@ -96,14 +96,39 @@
         function createFish() {
             const side = Math.floor(Math.random() * 4);
             let fish = {
-                x: side === 0 ? Math.random() * canvas.width : (side === 1 ? Math.random() * canvas.width : (side === 2 ? 0 : canvas.width)),
-                y: side === 1 ? 0 : (side === 2 ? Math.random() * canvas.height : (side === 3 ? Math.random() * canvas.height : 0)),
                 size: 30 + Math.random() * 20, // Cá có kích thước nhỏ hơn
                 speed: 2 + Math.random() * 3,
-                dx: (Math.random() - 0.5) * 4,
-                dy: (Math.random() - 0.5) * 4,
                 color: fishColors[Math.floor(Math.random() * fishColors.length)] // Màu sắc ngẫu nhiên
             };
+
+            // Cá xuất hiện từ một trong 4 cạnh của màn hình
+            switch (side) {
+                case 0: // Từ trên
+                    fish.x = Math.random() * canvas.width;
+                    fish.y = -fish.size; // Vị trí ban đầu trên cạnh trên
+                    fish.dy = fish.speed;
+                    fish.dx = (Math.random() - 0.5) * 4;
+                    break;
+                case 1: // Từ dưới
+                    fish.x = Math.random() * canvas.width;
+                    fish.y = canvas.height + fish.size; // Vị trí ban đầu dưới cạnh dưới
+                    fish.dy = -fish.speed;
+                    fish.dx = (Math.random() - 0.5) * 4;
+                    break;
+                case 2: // Từ trái
+                    fish.x = -fish.size; // Vị trí ban đầu bên trái
+                    fish.y = Math.random() * canvas.height;
+                    fish.dx = fish.speed;
+                    fish.dy = (Math.random() - 0.5) * 4;
+                    break;
+                case 3: // Từ phải
+                    fish.x = canvas.width + fish.size; // Vị trí ban đầu bên phải
+                    fish.y = Math.random() * canvas.height;
+                    fish.dx = -fish.speed;
+                    fish.dy = (Math.random() - 0.5) * 4;
+                    break;
+            }
+
             fishes.push(fish);
         }
 
@@ -136,7 +161,7 @@
             fishes.forEach(fish => {
                 ctx.beginPath();
                 ctx.arc(fish.x, fish.y, fish.size, 0, Math.PI * 2);
-                ctx.fillStyle = fish.color; // Màu sắc cá ngẫu nhiên
+                ctx.fillStyle = fish.color;
                 ctx.fill();
                 ctx.closePath();
             });
@@ -161,7 +186,7 @@
             if (!gameRunning) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Xóa canvas
-            updateFishes(); // Cập nhật vị trí cá
+            updateFishes(); // Cập nhật vị trí các con cá
             drawFishes(); // Vẽ cá
 
             requestAnimationFrame(gameLoop);

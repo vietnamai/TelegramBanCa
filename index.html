@@ -35,8 +35,11 @@
     <div id="error"></div>
 
     <script>
-        if (window.Telegram && window.Telegram.WebApp) {
-            // Gọi ready() để xác nhận SDK đã sẵn sàng
+        // Kiểm tra xem Telegram WebApp SDK có tồn tại không
+        if (typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined') {
+            alert("Telegram WebApp SDK có sẵn.");
+
+            // Đảm bảo SDK đã sẵn sàng
             window.Telegram.WebApp.ready();
 
             document.getElementById('start-game').addEventListener('click', () => {
@@ -56,6 +59,7 @@
                 }
             });
         } else {
+            console.log("Không phát hiện Telegram WebApp SDK.");
             document.getElementById('error').innerText = "Không phát hiện Telegram Web App. Hãy mở ứng dụng qua Telegram.";
         }
     </script>

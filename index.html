@@ -35,12 +35,12 @@
     <div id="error"></div>
 
     <script>
-        // Kiểm tra nếu Telegram Web App SDK tồn tại
         if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.ready(); // Gọi ready() để SDK hoạt động
+            // Gọi ready() để xác nhận SDK đã sẵn sàng
+            window.Telegram.WebApp.ready();
 
             document.getElementById('start-game').addEventListener('click', () => {
-                const user = window.Telegram.WebApp.initDataUnsafe.user;
+                const user = window.Telegram.WebApp.initDataUnsafe?.user;
 
                 if (user) {
                     const userInfoDiv = document.getElementById('user-info');

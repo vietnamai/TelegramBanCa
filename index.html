@@ -3,72 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Web App</title>
+    <title>Game Bắn Cá</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
             margin: 0;
-            background-color: #f4f7f6;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 100vh;
+            background-color: #00BFFF;
+            flex-direction: column;
         }
-        .container {
-            text-align: center;
-        }
-        .avatar {
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
+
+        #user-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             margin-bottom: 20px;
         }
-        .username {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 10px;
+
+        #user-info img {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
         }
-        .button {
-            background-color: #0088cc;
+
+        #user-info span {
+            font-size: 18px;
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .button:hover {
-            background-color: #006b8e;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img id="userAvatar" class="avatar" src="" alt="User Avatar">
-        <div id="userName" class="username">Loading...</div>
-        <button class="button" onclick="startGame()">Bắt đầu chơi</button>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Hiển thị tên và avatar người dùng -->
+    <div id="user-info">
+        <img id="user-avatar" src="" alt="Avatar">
+        <span id="user-name"></span>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        window.onload = function() {
-            Telegram.WebApp.ready();
+        // Lấy thông tin người dùng từ Telegram Web App
+        const user = Telegram.WebApp.initDataUnsafe;
+        const userName = user?.user?.first_name || "Người chơi";
+        const userAvatar = user?.user?.photo_url;
 
-            // Lấy thông tin người dùng
-            const user = Telegram.WebApp.initDataUnsafe.user;
+        // Hiển thị tên và avatar người chơi
+        document.getElementById('user-name').innerText = userName;
+        document.getElementById('user-avatar').src = userAvatar;
+        
+        // Thiết lập canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-            // Hiển thị avatar và tên người dùng
-            document.getElementById("userAvatar").src = user.photo_url || 'https://www.example.com/default-avatar.png';
-            document.getElementById("userName").textContent = user.first_name || "Người dùng";
+        // Game logic (ví dụ di chuyển cá)
+        let fish = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 50,
+            speed: 5
+        };
 
-            // Cập nhật giao diện Telegram Web App
-            Telegram.WebApp.expand();
+        function moveFish() {
+            fish.x += fish.speed;
+            fish.y += fish.speed;
         }
 
-        function startGame() {
-            Telegram.WebApp.sendData("start_game");
-            alert("Bắt đầu chơi!");
+        function drawFish() {
+            ctx.beginPath();
+            ctx.arc(fish.x, fish.y, fish.size, 0, Math.PI * 2);
+            ctx.fillStyle = 'yellow';
+            ctx.fill();
+            ctx.closePath();
         }
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            moveFish();
+            drawFish();
+            requestAnimationFrame(update);
+        }
+
+        update();
     </script>
 </body>
 </html>

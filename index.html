@@ -3,118 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Bắn Cá</title>
-    <style>
-        body {
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f3f3f3;
-            overflow: hidden;
-        }
-        canvas {
-            border: 2px solid #000;
-        }
-        .game-info {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 16px;
-            text-align: center;
-        }
-        #debugInfo {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: black;
-            font-size: 12px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 5px;
-            border-radius: 5px;
-        }
-    </style>
+    <title>Telegram Web App</title>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <div class="game-info" id="gameInfo">
-        <p id="playerName">Đang tải thông tin người dùng</p>
-        <p id="playerAvatar"></p>
-    </div>
-
-    <!-- Debug Info Box -->
-    <div id="debugInfo">Đang tải dữ liệu</div>
+    <h1>Thông tin người dùng</h1>
+    <div id="userInfo">Đang tải thông tin...</div>
 
     <script>
-        // Game logic placeholder
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        // Khởi tạo Telegram Web App
+        const tg = window.Telegram.WebApp;
 
-        // Game elements
-        let fish = { x: 100, y: 100, width: 50, height: 30, color: 'blue' };
+        // Đảm bảo Web App đã sẵn sàng
+        tg.ready();
 
-        function drawGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = fish.color;
-            ctx.fillRect(fish.x, fish.y, fish.width, fish.height);
-        }
+        // Lấy thông tin người dùng từ initDataUnsafe
+        const user = tg.initDataUnsafe?.user;
 
-        function updateGame() {
-            // Update game elements (e.g., fish movement)
-            fish.x += 2;
-            if (fish.x > canvas.width) fish.x = 0;
-        }
-
-        function gameLoop() {
-            updateGame();
-            drawGame();
-            requestAnimationFrame(gameLoop);
-        }
-
-        gameLoop();
-
-        // Telegram Web App Info (player's name and avatar)
-        window.Telegram.WebApp.ready();  // Ensure WebApp is ready
-
-        // Function to load user data
-        function loadUserData() {
-            // Check if Telegram WebApp data is available
-            const playerName = Telegram.WebApp.initDataUnsafe?.user?.first_name || "Player";
-            const playerAvatar = Telegram.WebApp.initDataUnsafe?.user?.photo_url || "";
-
-            // Debug output
-            console.log('Telegram.WebApp.initDataUnsafe:', Telegram.WebApp.initDataUnsafe);
-
-            // Update player info on the page
-            document.getElementById('playerName').textContent = `Chào ${playerName}!`;
-
-            if (playerAvatar) {
-                const img = document.createElement('img');
-                img.src = playerAvatar;
-                img.width = 30;
-                img.height = 30;
-                document.getElementById('playerAvatar').appendChild(img);
-            } else {
-                document.getElementById('playerAvatar').textContent = "Ảnh đại diện không có";
-            }
-
-            // Display debug information on screen
-            document.getElementById('debugInfo').textContent = `User Data: ${JSON.stringify(Telegram.WebApp.initDataUnsafe)}`;
-        }
-
-        // Fallback check if data is available immediately
-        if (Telegram.WebApp.initDataUnsafe?.user) {
-            loadUserData();
+        if (user) {
+            // Hiển thị thông tin người dùng
+            const userInfoDiv = document.getElementById('userInfo');
+            userInfoDiv.innerHTML = `
+                <p>Họ tên: ${user.first_name} ${user.last_name || ''}</p>
+                <p>Username: ${user.username || 'Không có'}</p>
+                <p>ID: ${user.id}</p>
+                <img src="${user.photo_url}" alt="Avatar" width="100">
+            `;
         } else {
-            setTimeout(() => {
-                console.log('Retrying data fetch...');
-                loadUserData();  // Retry after a short delay
-            }, 5000);  // Chờ lâu hơn 5 giây
+            document.getElementById('userInfo').textContent = 'Không thể lấy thông tin người dùng.';
         }
-alert(window.Telegram.WebApp.ready)
+
+        // In debug dữ liệu vào console (chỉ dùng để kiểm tra)
+        console.log('Dữ liệu thô:', tg.initData);
+        console.log('Dữ liệu phân tích:', tg.initDataUnsafe);
     </script>
 </body>
 </html>

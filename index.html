@@ -39,6 +39,7 @@
             font-size: 18px;
             color: white;
         }
+        /* Phần tử nút bắt đầu chơi */
         .button {
             position: absolute;
             top: 50%;
@@ -54,6 +55,7 @@
         .button:hover {
             background-color: #006b8e;
         }
+        /* Phần tử thông báo lỗi */
         #error-message {
             position: fixed;
             top: 10px;
@@ -69,6 +71,7 @@
 </head>
 <body>
 
+    <!-- Thông báo lỗi -->
     <div id="error-message">Đã có lỗi xảy ra. Kiểm tra lại!</div>
 
     <div id="user-info">
@@ -77,58 +80,32 @@
     </div>
 
     <canvas id="gameCanvas"></canvas>
-    <button class="button" onclick="startGame()">Bắt đầu chơi 3</button>
+    <button class="button" onclick="startGame()">Bắt đầu chơi</button>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         let user;
         let gameRunning = false;
 
+        // Thiết lập canvas cho game
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
+        // Mảng cá
         let fishes = [];
-        const fishColors = ['yellow', 'green', 'blue', 'orange', 'red'];
-
-        // Tạo con cá
+        
+        // Hàm tạo con cá
         function createFish() {
-            const side = Math.floor(Math.random() * 4);
             let fish = {
-                size: 30 + Math.random() * 20, // Cá có kích thước nhỏ hơn
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: 50,
                 speed: 2 + Math.random() * 3,
-                color: fishColors[Math.floor(Math.random() * fishColors.length)] // Màu sắc ngẫu nhiên
+                dx: 2 + Math.random() * 2,
+                dy: 2 + Math.random() * 2
             };
-
-            // Cá xuất hiện từ một trong 4 cạnh của màn hình
-            switch (side) {
-                case 0: // Từ trên
-                    fish.x = Math.random() * canvas.width;
-                    fish.y = -fish.size; // Vị trí ban đầu trên cạnh trên
-                    fish.dy = fish.speed;
-                    fish.dx = (Math.random() - 0.5) * 4;
-                    break;
-                case 1: // Từ dưới
-                    fish.x = Math.random() * canvas.width;
-                    fish.y = canvas.height + fish.size; // Vị trí ban đầu dưới cạnh dưới
-                    fish.dy = -fish.speed;
-                    fish.dx = (Math.random() - 0.5) * 4;
-                    break;
-                case 2: // Từ trái
-                    fish.x = -fish.size; // Vị trí ban đầu bên trái
-                    fish.y = Math.random() * canvas.height;
-                    fish.dx = fish.speed;
-                    fish.dy = (Math.random() - 0.5) * 4;
-                    break;
-                case 3: // Từ phải
-                    fish.x = canvas.width + fish.size; // Vị trí ban đầu bên phải
-                    fish.y = Math.random() * canvas.height;
-                    fish.dx = -fish.speed;
-                    fish.dy = (Math.random() - 0.5) * 4;
-                    break;
-            }
-
             fishes.push(fish);
         }
 
@@ -140,34 +117,41 @@
         window.onload = function() {
             try {
                 Telegram.WebApp.ready();
+
+                // Lấy thông tin người dùng
                 user = Telegram.WebApp.initDataUnsafe.user;
+
+                // Hiển thị avatar và tên người dùng
                 document.getElementById("userAvatar").src = user.photo_url || 'https://www.example.com/default-avatar.png';
                 document.getElementById("userName").textContent = user.first_name || "Người dùng";
+
+                // Cập nhật giao diện Telegram Web App
                 Telegram.WebApp.expand();
             } catch (error) {
+                // Hiển thị thông báo lỗi nếu có lỗi
                 showError("Không thể lấy thông tin người dùng.");
             }
         }
 
-        // Bắt đầu game
+        // Hàm bắt đầu game
         function startGame() {
             gameRunning = true;
-            document.querySelector(".button").style.display = 'none';
-            gameLoop();
+            document.querySelector(".button").style.display = 'none'; // Ẩn nút bắt đầu khi game bắt đầu
+            gameLoop(); // Bắt đầu vòng lặp game
         }
 
-        // Vẽ các con cá
+        // Vẽ tất cả các con cá
         function drawFishes() {
             fishes.forEach(fish => {
                 ctx.beginPath();
                 ctx.arc(fish.x, fish.y, fish.size, 0, Math.PI * 2);
-                ctx.fillStyle = fish.color;
+                ctx.fillStyle = 'yellow';
                 ctx.fill();
                 ctx.closePath();
             });
         }
 
-        // Cập nhật vị trí các con cá
+        // Cập nhật vị trí tất cả các con cá
         function updateFishes() {
             fishes.forEach(fish => {
                 if (fish.x + fish.size > canvas.width || fish.x - fish.size < 0) {
@@ -187,17 +171,18 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Xóa canvas
             updateFishes(); // Cập nhật vị trí các con cá
-            drawFishes(); // Vẽ cá
+            drawFishes(); // Vẽ lại tất cả các con cá
 
-            requestAnimationFrame(gameLoop);
+            requestAnimationFrame(gameLoop); // Tiếp tục vòng lặp game
         }
 
-        // Hiển thị thông báo lỗi
+        // Hàm hiển thị thông báo lỗi
         function showError(message) {
             const errorMessageDiv = document.getElementById("error-message");
             errorMessageDiv.textContent = message;
             errorMessageDiv.style.display = 'block';
 
+            // Ẩn thông báo sau 5 giây
             setTimeout(() => {
                 errorMessageDiv.style.display = 'none';
             }, 5000);

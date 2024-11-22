@@ -23,27 +23,36 @@
             width: 50px;
             height: 50px;
         }
+        #error {
+            color: red;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <button id="start-game">Bắt đầu chơi</button>
     <div id="user-info"></div>
+    <div id="error"></div>
 
     <script>
         document.getElementById('start-game').addEventListener('click', () => {
-            const user = window.Telegram.WebApp.initDataUnsafe.user;
+            try {
+                const user = window.Telegram.WebApp.initDataUnsafe.user;
 
-            if (user) {
-                const userInfoDiv = document.getElementById('user-info');
-                const name = user.first_name || user.username || 'Người dùng';
-                const avatar = user.photo_url || 'default-avatar.png'; // URL ảnh mặc định nếu không có avatar
+                if (user) {
+                    const userInfoDiv = document.getElementById('user-info');
+                    const name = user.first_name || user.username || 'Người dùng';
+                    const avatar = user.photo_url || 'https://via.placeholder.com/50'; // Ảnh mặc định
 
-                userInfoDiv.innerHTML = `
-                    <img src="${avatar}" alt="Avatar">
-                    <p>${name}</p>
-                `;
-            } else {
-                alert("Không thể lấy thông tin người dùng!");
+                    userInfoDiv.innerHTML = `
+                        <img src="${avatar}" alt="Avatar">
+                        <p>${name}</p>
+                    `;
+                } else {
+                    throw new Error("Không lấy được thông tin người dùng từ Telegram Web App.");
+                }
+            } catch (error) {
+                document.getElementById('error').innerText = error.message;
             }
         });
     </script>

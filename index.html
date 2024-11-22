@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Bắn Cá Toàn Màn Hình</title>
+    <title>Game Bắn Cá với Telegram</title>
     <style>
         body {
             margin: 0;
@@ -16,7 +16,9 @@
             font-family: Arial, sans-serif;
         }
         canvas {
-            display: none; /* Canvas chỉ hiện sau khi bấm nút "Bắt đầu chơi" */
+            display: none;
+            width: 100vw;
+            height: 100vh;
         }
         #startScreen {
             display: flex;
@@ -35,6 +37,20 @@
         #startButton:hover {
             background-color: #0056b3;
         }
+        #userInfo {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: white;
+        }
+        #userAvatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -42,6 +58,12 @@
     <div id="startScreen">
         <h1>Chào mừng đến với game bắn cá!</h1>
         <button id="startButton">Bắt đầu chơi</button>
+    </div>
+
+    <!-- Thông tin người dùng -->
+    <div id="userInfo">
+        <img id="userAvatar" src="" alt="Avatar" />
+        <p id="userName"></p>
     </div>
 
     <!-- Canvas game -->
@@ -52,6 +74,24 @@
         const ctx = canvas.getContext('2d');
         const startScreen = document.getElementById('startScreen');
         const startButton = document.getElementById('startButton');
+        const userInfo = document.getElementById('userInfo');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+
+        // Telegram Web App Integration
+        const tg = window.Telegram.WebApp;
+
+        // Hiển thị thông tin người dùng
+        function showUserInfo() {
+            const user = tg.initDataUnsafe?.user;
+
+            if (user) {
+                userAvatar.src = user.photo_url || 'https://via.placeholder.com/50';
+                userName.textContent = `${user.first_name} ${user.last_name || ''}`;
+            } else {
+                userInfo.textContent = "Không lấy được thông tin người dùng.";
+            }
+        }
 
         // Thiết lập kích thước canvas
         function resizeCanvas() {
@@ -143,6 +183,9 @@
         for (let i = 0; i < 10; i++) {
             createFish();
         }
+
+        // Hiển thị thông tin người dùng
+        showUserInfo();
     </script>
 </body>
 </html>

@@ -31,7 +31,7 @@
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div class="game-info" id="gameInfo">
-        <p id="playerName"></p>
+        <p id="playerName">Đang tải thông tin người dùng...</p>
         <p id="playerAvatar"></p>
     </div>
 
@@ -64,11 +64,13 @@
         gameLoop();
 
         // Telegram Web App Info (player's name and avatar)
-        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.ready();  // Ensure Telegram WebApp is ready
 
+        // Fetch the user info
         const playerName = Telegram.WebApp.initDataUnsafe?.user?.first_name || "Player";
         const playerAvatar = Telegram.WebApp.initDataUnsafe?.user?.photo_url || "";
 
+        // Update the player info on the page
         document.getElementById('playerName').textContent = `Chào ${playerName}!`;
         if (playerAvatar) {
             const img = document.createElement('img');
@@ -76,6 +78,8 @@
             img.width = 30;
             img.height = 30;
             document.getElementById('playerAvatar').appendChild(img);
+        } else {
+            document.getElementById('playerAvatar').textContent = "Ảnh đại diện không có";
         }
     </script>
 </body>

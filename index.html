@@ -1,48 +1,73 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+        }
+        .container {
+            text-align: center;
+        }
+        .avatar {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+        }
+        .username {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .button {
+            background-color: #0088cc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #006b8e;
+        }
+    </style>
 </head>
 <body>
-    <h1>Thông tin người dùng</h1>
-    <div id="userInfo">Đang tải thông tin</div>
-    <div id="errorInfo" style="color: red;"></div> <!-- Vùng hiển thị lỗi -->
+    <div class="container">
+        <img id="userAvatar" class="avatar" src="" alt="User Avatar">
+        <div id="userName" class="username">Loading...</div>
+        <button class="button" onclick="startGame()">Bắt đầu chơi</button>
+    </div>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        try {
-            // Khởi tạo Telegram Web App
-            const tg = window.Telegram.WebApp;
+        window.onload = function() {
+            Telegram.WebApp.ready();
 
-            // Đảm bảo Web App đã sẵn sàng
-            tg.ready();
+            // Lấy thông tin người dùng
+            const user = Telegram.WebApp.initDataUnsafe.user;
 
-            // Lấy thông tin người dùng từ initDataUnsafe
-            const user = tg.initDataUnsafe?.user;
+            // Hiển thị avatar và tên người dùng
+            document.getElementById("userAvatar").src = user.photo_url || 'https://www.example.com/default-avatar.png';
+            document.getElementById("userName").textContent = user.first_name || "Người dùng";
 
-            if (user) {
-                // Hiển thị thông tin người dùng
-                const userInfoDiv = document.getElementById('userInfo');
-                userInfoDiv.innerHTML = `
-                    <p>Họ tên: ${user.first_name} ${user.last_name || ''}</p>
-                    <p>Username: ${user.username || 'Không có'}</p>
-                    <p>ID: ${user.id}</p>
-                    <img src="${user.photo_url}" alt="Avatar" width="100">
-                `;
-            } else {
-                document.getElementById('userInfo').textContent = 'Không thể lấy thông tin người dùng.';
-            }
+            // Cập nhật giao diện Telegram Web App
+            Telegram.WebApp.expand();
+        }
 
-            // In debug dữ liệu vào console (chỉ dùng để kiểm tra)
-            console.log('Dữ liệu thô:', tg.initData);
-            console.log('Dữ liệu phân tích:', tg.initDataUnsafe);
-        } catch (error) {
-            // Xử lý lỗi nếu xảy ra
-            console.error('Đã xảy ra lỗi:', error);
-
-            // Hiển thị lỗi lên giao diện
-            document.getElementById('errorInfo').textContent = `Đã xảy ra lỗi: ${error.message}`;
+        function startGame() {
+            Telegram.WebApp.sendData("start_game");
+            alert("Bắt đầu chơi!");
         }
     </script>
 </body>

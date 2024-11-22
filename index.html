@@ -41,7 +41,7 @@
 <body>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <div class="game-info" id="gameInfo">
-        <p id="playerName">Đang tải thông tin người dùng</p>
+        <p id="playerName">Đang tải thông tin người dùng...</p>
         <p id="playerAvatar"></p>
     </div>
 
@@ -86,7 +86,7 @@
             const playerAvatar = Telegram.WebApp.initDataUnsafe?.user?.photo_url || "";
 
             // Debug output
-            alert('Telegram.WebApp.initDataUnsafe:', Telegram.WebApp.initDataUnsafe);
+            console.log('Telegram.WebApp.initDataUnsafe:', Telegram.WebApp.initDataUnsafe);
 
             // Update player info on the page
             document.getElementById('playerName').textContent = `Chào ${playerName}!`;

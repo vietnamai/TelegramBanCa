@@ -78,7 +78,7 @@
     </div>
 
     <canvas id="gameCanvas"></canvas>
-    <button class="button" onclick="startGame()">Bắt đầu chơi 1</button>
+    <button class="button" onclick="startGame()">Bắt đầu chơi 2</button>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
@@ -94,15 +94,21 @@
         let fishes = [];
         let bullets = [];
 
+        // Mảng màu sắc cho cá
+        const fishColors = ['yellow', 'green', 'blue', 'orange', 'red'];
+
         // Tạo con cá
         function createFish() {
+            // Xác định vị trí xuất phát ngẫu nhiên từ bốn cạnh màn hình
+            const side = Math.floor(Math.random() * 4);
             let fish = {
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: 50,
+                x: side === 0 ? Math.random() * canvas.width : (side === 1 ? Math.random() * canvas.width : (side === 2 ? 0 : canvas.width)),
+                y: side === 1 ? 0 : (side === 2 ? Math.random() * canvas.height : (side === 3 ? Math.random() * canvas.height : 0)),
+                size: 30 + Math.random() * 20, // Kích thước cá nhỏ hơn
                 speed: 2 + Math.random() * 3,
-                dx: 2 + Math.random() * 2,
-                dy: 2 + Math.random() * 2
+                dx: (Math.random() - 0.5) * 4,  // Tốc độ cá theo chiều ngang
+                dy: (Math.random() - 0.5) * 4,  // Tốc độ cá theo chiều dọc
+                color: fishColors[Math.floor(Math.random() * fishColors.length)] // Màu sắc cá ngẫu nhiên
             };
             fishes.push(fish);
         }
@@ -137,7 +143,7 @@
             fishes.forEach(fish => {
                 ctx.beginPath();
                 ctx.arc(fish.x, fish.y, fish.size, 0, Math.PI * 2);
-                ctx.fillStyle = 'yellow';
+                ctx.fillStyle = fish.color;
                 ctx.fill();
                 ctx.closePath();
             });
@@ -158,83 +164,4 @@
         function updateFishesAndBullets() {
             // Cập nhật vị trí cá
             fishes.forEach(fish => {
-                if (fish.x + fish.size > canvas.width || fish.x - fish.size < 0) {
-                    fish.dx = -fish.dx;
-                }
-                if (fish.y + fish.size > canvas.height || fish.y - fish.size < 0) {
-                    fish.dy = -fish.dy;
-                }
-                fish.x += fish.dx;
-                fish.y += fish.dy;
-            });
-
-            // Cập nhật vị trí đạn
-            bullets.forEach((bullet, index) => {
-                bullet.y += bullet.dy; // Đạn di chuyển lên
-
-                // Nếu đạn ra khỏi màn hình, xóa nó
-                if (bullet.y < 0) {
-                    bullets.splice(index, 1);
-                }
-
-                // Kiểm tra va chạm với cá
-                fishes.forEach((fish, fishIndex) => {
-                    const dist = Math.sqrt(Math.pow(bullet.x - fish.x, 2) + Math.pow(bullet.y - fish.y, 2));
-                    if (dist < fish.size) { // Kiểm tra va chạm
-                        // Xóa cá và đạn
-                        fishes.splice(fishIndex, 1);
-                        bullets.splice(index, 1);
-                    }
-                });
-            });
-        }
-
-        // Vòng lặp game
-        function gameLoop() {
-            if (!gameRunning) return;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Xóa canvas
-            updateFishesAndBullets(); // Cập nhật cá và đạn
-            drawFishes(); // Vẽ cá
-            drawBullets(); // Vẽ đạn
-
-            requestAnimationFrame(gameLoop); // Tiếp tục vòng lặp game
-        }
-
-        window.onload = function() {
-            try {
-                Telegram.WebApp.ready();
-
-                // Lấy thông tin người dùng
-                user = Telegram.WebApp.initDataUnsafe.user;
-
-                // Hiển thị avatar và tên người dùng
-                document.getElementById("userAvatar").src = user.photo_url || 'https://www.example.com/default-avatar.png';
-                document.getElementById("userName").textContent = user.first_name || "Người dùng";
-
-                // Cập nhật giao diện Telegram Web App
-                Telegram.WebApp.expand();
-            } catch (error) {
-                showError("Không thể lấy thông tin người dùng.");
-            }
-        };
-
-        function startGame() {
-            gameRunning = true;
-            document.querySelector(".button").style.display = 'none'; // Ẩn nút bắt đầu khi game bắt đầu
-            gameLoop(); // Bắt đầu vòng lặp game
-        }
-
-        // Hàm hiển thị thông báo lỗi
-        function showError(message) {
-            const errorMessageDiv = document.getElementById("error-message");
-            errorMessageDiv.textContent = message;
-            errorMessageDiv.style.display = 'block';
-
-            setTimeout(() => {
-                errorMessageDiv.style.display = 'none';
-            }, 5000);
-        }
-    </script>
-</body>
-</html>
+                if (fish.x + fish.size > canvas.width

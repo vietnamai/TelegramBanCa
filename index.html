@@ -1,66 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game</title>
+    <title>Game Bắn Cá</title>
     <style>
         body {
+            margin: 0;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
+            background-color: #f3f3f3;
         }
-        #user-info {
+        canvas {
+            border: 2px solid #000;
+        }
+        .game-info {
             position: absolute;
-            bottom: 20px;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 16px;
             text-align: center;
-        }
-        img {
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-        }
-        #error {
-            color: red;
-            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <button id="start-game">Bắt đầu chơi</button>
-    <div id="user-info"></div>
-    <div id="error"></div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="game-info" id="gameInfo">
+        <p id="playerName"></p>
+        <p id="playerAvatar"></p>
+    </div>
 
     <script>
-        // Kiểm tra xem Telegram WebApp SDK có tồn tại không
-        if (typeof window.Telegram !== 'undefined' && typeof window.Telegram.WebApp !== 'undefined') {
-            alert("Telegram WebApp SDK có sẵn.");
+        // Game logic placeholder
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-            // Đảm bảo SDK đã sẵn sàng
-            window.Telegram.WebApp.ready();
+        // Game elements
+        let fish = { x: 100, y: 100, width: 50, height: 30, color: 'blue' };
 
-            document.getElementById('start-game').addEventListener('click', () => {
-                const user = window.Telegram.WebApp.initDataUnsafe?.user;
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = fish.color;
+            ctx.fillRect(fish.x, fish.y, fish.width, fish.height);
+        }
 
-                if (user) {
-                    const userInfoDiv = document.getElementById('user-info');
-                    const name = user.first_name || user.username || 'Người dùng';
-                    const avatar = user.photo_url || 'https://via.placeholder.com/50'; // Ảnh mặc định
+        function updateGame() {
+            // Update game elements (e.g., fish movement)
+            fish.x += 2;
+            if (fish.x > canvas.width) fish.x = 0;
+        }
 
-                    userInfoDiv.innerHTML = `
-                        <img src="${avatar}" alt="Avatar">
-                        <p>${name}</p>
-                    `;
-                } else {
-                    document.getElementById('error').innerText = "Không lấy được thông tin người dùng.";
-                }
-            });
-        } else {
-            console.log("Không phát hiện Telegram WebApp SDK.");
-            document.getElementById('error').innerText = "Không phát hiện Telegram Web App. Hãy mở ứng dụng qua Telegram.";
+        function gameLoop() {
+            updateGame();
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+
+        // Telegram Web App Info (player's name and avatar)
+        window.Telegram.WebApp.ready();
+
+        const playerName = Telegram.WebApp.initDataUnsafe?.user?.first_name || "Player";
+        const playerAvatar = Telegram.WebApp.initDataUnsafe?.user?.photo_url || "";
+
+        document.getElementById('playerName').textContent = `Chào ${playerName}!`;
+        if (playerAvatar) {
+            const img = document.createElement('img');
+            img.src = playerAvatar;
+            img.width = 30;
+            img.height = 30;
+            document.getElementById('playerAvatar').appendChild(img);
         }
     </script>
 </body>

@@ -81,8 +81,12 @@
 
         // Function to load user data
         function loadUserData() {
+            // Check if Telegram WebApp data is available
             const playerName = Telegram.WebApp.initDataUnsafe?.user?.first_name || "Player";
             const playerAvatar = Telegram.WebApp.initDataUnsafe?.user?.photo_url || "";
+
+            // Debug output
+            alert('Telegram.WebApp.initDataUnsafe:', Telegram.WebApp.initDataUnsafe);
 
             // Update player info on the page
             document.getElementById('playerName').textContent = `Chào ${playerName}!`;
@@ -101,18 +105,14 @@
             document.getElementById('debugInfo').textContent = `User Data: ${JSON.stringify(Telegram.WebApp.initDataUnsafe)}`;
         }
 
-        // Using Web App's onEvent to wait for data
-        Telegram.WebApp.onEvent('user', function() {
-            loadUserData();  // Load user data once available
-        });
-
         // Fallback check if data is available immediately
         if (Telegram.WebApp.initDataUnsafe?.user) {
             loadUserData();
         } else {
             setTimeout(() => {
+                console.log('Retrying data fetch...');
                 loadUserData();  // Retry after a short delay
-            }, 2000);
+            }, 5000);  // Chờ lâu hơn 5 giây
         }
     </script>
 </body>

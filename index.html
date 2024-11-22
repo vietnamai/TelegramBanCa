@@ -3,189 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Bắn Cá với Telegram</title>
+    <title>Game</title>
     <style>
         body {
-            margin: 0;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #333;
-            color: #fff;
-            font-family: Arial, sans-serif;
-        }
-        canvas {
-            display: none;
-            width: 100vw;
-            height: 100vh;
-        }
-        #startScreen {
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
+            height: 100vh;
+            margin: 0;
         }
-        #startButton {
-            padding: 15px 30px;
-            font-size: 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #startButton:hover {
-            background-color: #0056b3;
-        }
-        #userInfo {
+        #user-info {
             position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 20px;
             text-align: center;
-            color: white;
         }
-        #userAvatar {
+        img {
+            border-radius: 50%;
             width: 50px;
             height: 50px;
-            border-radius: 50%;
-            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
-    <!-- Giao diện chờ -->
-    <div id="startScreen">
-        <h1>Chào mừng đến với game bắn cá!</h1>
-        <button id="startButton">Bắt đầu chơi</button>
-    </div>
-
-    <!-- Thông tin người dùng -->
-    <div id="userInfo">
-        <img id="userAvatar" src="" alt="Avatar" />
-        <p id="userName"></p>
-    </div>
-
-    <!-- Canvas game -->
-    <canvas id="gameCanvas"></canvas>
+    <button id="start-game">Bắt đầu chơi</button>
+    <div id="user-info"></div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const startScreen = document.getElementById('startScreen');
-        const startButton = document.getElementById('startButton');
-        const userInfo = document.getElementById('userInfo');
-        const userAvatar = document.getElementById('userAvatar');
-        const userName = document.getElementById('userName');
-
-        // Telegram Web App Integration
-        const tg = window.Telegram.WebApp;
-
-        // Hiển thị thông tin người dùng
-        function showUserInfo() {
-            const user = tg.initDataUnsafe?.user;
+        document.getElementById('start-game').addEventListener('click', () => {
+            const user = window.Telegram.WebApp.initDataUnsafe.user;
 
             if (user) {
-                userAvatar.src = user.photo_url || 'https://via.placeholder.com/50';
-                userName.textContent = `${user.first_name} ${user.last_name || ''}`;
+                const userInfoDiv = document.getElementById('user-info');
+                const name = user.first_name || user.username || 'Người dùng';
+                const avatar = user.photo_url || 'default-avatar.png'; // URL ảnh mặc định nếu không có avatar
+
+                userInfoDiv.innerHTML = `
+                    <img src="${avatar}" alt="Avatar">
+                    <p>${name}</p>
+                `;
             } else {
-                userInfo.textContent = "Không lấy được thông tin người dùng.";
+                alert("Không thể lấy thông tin người dùng!");
             }
-        }
-
-        // Thiết lập kích thước canvas
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-
-        // Khi nhấn nút "Bắt đầu chơi"
-        startButton.addEventListener('click', () => {
-            startScreen.style.display = 'none'; // Ẩn màn hình chờ
-            canvas.style.display = 'block'; // Hiển thị canvas
-            resizeCanvas();
-            gameLoop(); // Bắt đầu game
         });
-
-        // Mảng chứa các chú cá
-        const fishes = [];
-
-        // Tạo ngẫu nhiên cá với thông số ngẫu nhiên
-        function createFish() {
-            const size = Math.random() * 50 + 20; // Kích thước ngẫu nhiên (20-70)
-            const speed = Math.random() * 3 + 1;  // Tốc độ ngẫu nhiên (1-4)
-            const direction = Math.random() < 0.5 ? 1 : -1; // Hướng bơi (trái/phải)
-            const spawnEdge = Math.floor(Math.random() * 4); // 0=trên, 1=dưới, 2=trái, 3=phải
-            let x, y;
-
-            // Xác định vị trí xuất hiện từ cạnh màn hình
-            if (spawnEdge === 0) { // Trên
-                x = Math.random() * canvas.width;
-                y = -size;
-            } else if (spawnEdge === 1) { // Dưới
-                x = Math.random() * canvas.width;
-                y = canvas.height + size;
-            } else if (spawnEdge === 2) { // Trái
-                x = -size;
-                y = Math.random() * canvas.height;
-            } else { // Phải
-                x = canvas.width + size;
-                y = Math.random() * canvas.height;
-            }
-
-            fishes.push({
-                x,
-                y,
-                size,
-                speedX: direction * speed,
-                speedY: (Math.random() * 2 - 1) * speed, // Tốc độ Y ngẫu nhiên
-                color: `hsl(${Math.random() * 360}, 70%, 50%)` // Màu ngẫu nhiên
-            });
-        }
-
-        // Vẽ cá
-        function drawFish(fish) {
-            ctx.beginPath();
-            ctx.ellipse(fish.x, fish.y, fish.size, fish.size / 2, 0, 0, Math.PI * 2);
-            ctx.fillStyle = fish.color;
-            ctx.fill();
-        }
-
-        // Cập nhật vị trí của cá
-        function updateFish(fish) {
-            fish.x += fish.speedX;
-            fish.y += fish.speedY;
-
-            // Nếu cá bơi ra khỏi màn hình, đặt lại vị trí để tiếp tục bơi từ cạnh khác
-            if (fish.x < -fish.size || fish.x > canvas.width + fish.size ||
-                fish.y < -fish.size || fish.y > canvas.height + fish.size) {
-                const index = fishes.indexOf(fish);
-                fishes.splice(index, 1); // Xóa cá cũ
-                createFish(); // Thêm cá mới
-            }
-        }
-
-        // Vòng lặp game
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Xóa canvas
-
-            // Vẽ và cập nhật tất cả cá
-            fishes.forEach(fish => {
-                drawFish(fish);
-                updateFish(fish);
-            });
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Khởi tạo cá ban đầu
-        for (let i = 0; i < 10; i++) {
-            createFish();
-        }
-
-        // Hiển thị thông tin người dùng
-        showUserInfo();
     </script>
 </body>
 </html>
